@@ -9,19 +9,29 @@
 <style>
 /* Layout: full-screen 3D stage; three tabs in the header; view controls float over the stage */
 :root{
-  --bg:#eef0ee; --stage:#e2e7e5; --panel:#ffffff; --fg:#1f2a2c; --mut:#5d6b6e; --line:#d5dbd9;
-  --accent:#14808c; --accent-fg:#ffffff; --tag:#1f2a2c; --tag-fg:#ffffff;
+  --bg:#f4f6fa; --stage:#e6ebf3; --panel:#ffffff; --fg:#1f2a2c; --mut:#5d6b6e; --line:#d5dbd9;
+  --accent:#16295a; --accent-fg:#ffffff; --gold:#b8913a; --tag:#16295a; --tag-fg:#ffffff;
   --f:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121718;--stage:#1a2123;--panel:#1f282a;--fg:#e8eeee;--mut:#9fb0b2;--line:#2f3a3c;--accent:#3fb5c1;--accent-fg:#0d1416;--tag:#f2f5f5;--tag-fg:#142022;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#121718;--stage:#1a2123;--panel:#1f282a;--fg:#e8eeee;--mut:#9fb0b2;--line:#2f3a3c;--accent:#3fb5c1;--accent-fg:#0d1416;--tag:#f2f5f5;--tag-fg:#142022;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1428;--stage:#101d38;--panel:#1f282a;--fg:#e8eeee;--mut:#9fb0b2;--line:#2f3a3c;--accent:#d1ab5a;--accent-fg:#0b1428;--gold:#d1ab5a;--tag:#f2f5f5;--tag-fg:#142022;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1428;--stage:#101d38;--panel:#1f282a;--fg:#e8eeee;--mut:#9fb0b2;--line:#2f3a3c;--accent:#d1ab5a;--accent-fg:#0b1428;--gold:#d1ab5a;--tag:#f2f5f5;--tag-fg:#142022;color-scheme:dark}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--f);overflow:hidden}
 [hidden]{display:none!important}
 .app{position:relative;height:100%;display:flex;flex-direction:column}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
   padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .afaq{height:44px;width:auto;border-radius:8px;background:#fff;padding:3px 6px;border-inline-end:2px solid var(--gold)}
+.intro{position:fixed;inset:0;z-index:50;display:grid;place-items:center;align-content:center;gap:18px;background:radial-gradient(ellipse at center,#ffffff 0%,#eef2f8 70%,#e3e9f3 100%);cursor:pointer;transition:opacity .8s ease,visibility .8s}
+.intro.out{opacity:0;visibility:hidden}
+.intro img{width:min(440px,78vw);height:auto;mix-blend-mode:multiply;animation:rise 1.1s ease both}
+.intro p{margin:0;font-size:15px;color:#16295a;letter-spacing:.02em;animation:rise 1.1s .35s ease both}
+.intro p b{color:#b8913a}
+.intro i{display:block;width:120px;height:2px;margin:0 auto;background:linear-gradient(90deg,transparent,#b8913a,transparent);animation:rise 1.1s .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.intro img,.intro p,.intro i{animation:none}.intro{transition:none}}
 .brand b{font-size:18px;font-weight:700;display:block}
 .brand span{font-size:12px;color:var(--mut)}
 .seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px;max-width:100%;overflow-x:auto;scrollbar-width:none}
@@ -79,9 +89,10 @@ select.chip{appearance:none;-webkit-appearance:none;padding-inline:14px}
   .room{font-size:12.5px;padding:5px 12px}
 }
 </style>
+<div class="intro" id="intro" role="dialog" aria-label="آفاق تقدّم"><img src="afaq-logo.webp" alt="آفاق - أكاديمية تعليم الذكاء الاصطناعي والبرمجة"><i></i><p>تقدّم <b>النخيل ريزيدنس</b> • جولة ثلاثية الأبعاد</p></div>
 <div class="app">
   <header>
-    <div class="brand"><b>النخيل ريزيدنس</b><span>مشروع تجريبي • تصوّر تخيلي</span></div>
+    <div class="brand"><img class="afaq" src="afaq-mark.webp" alt="آفاق"><div><b>النخيل ريزيدنس</b><span>عرض تجريبي من آفاق • تصوّر تخيلي</span></div></div>
     <div class="seg" role="group" aria-label="العرض">
       <button id="v-building" aria-pressed="true">العمارة كاملة</button>
       <button id="v-floor" aria-pressed="false">الدور المتكرر</button>
@@ -121,6 +132,8 @@ const APTS=[{"id": 1, "area": 116, "beds": 2, "baths": 2, "center": [5.5, 0, 15.
 const fmt=n=>Number(n).toLocaleString('ar-EG');
 const $=id=>document.getElementById(id);
 const view=$('view'),labels=$('labels'),bar=$('bar'),card=$('card'),status=$('status');
+const introT0=performance.now(),introGo=()=>$('intro').classList.add('out');
+$('intro').addEventListener('click',introGo);addEventListener('keydown',introGo,{once:true});setTimeout(introGo,12000);
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 // ================= renderer & scene =================
@@ -223,7 +236,7 @@ function routeTour(){const P=[];const add=(x,z,look,pause)=>P.push({p:[x,z],look
   return P;}
 
 const EYE=1.62,R_BODY=.28,STEP_UP=.32;
-let walkOn=false,walkModel=null,yaw=0,yawVel=0,pitch=-.04,bob=0,feet=0,vy=0,tour=null,speedMul=1,goal=null,cursor=null,levels=[];
+let walkOn=false,walkModel=null,yaw=0,yawVel=0,pitch=-.04,bob=0,feet=0,vy=0,tour=null,speedMul=1,goal=null,cursor=null,levels=[];setBg();
 const pos=new THREE.Vector2(),vel=new THREE.Vector2(),keys={};
 let colliders=[];
 const ray=new THREE.Raycaster(),rO=new THREE.Vector3(),rD=new THREE.Vector3(),DOWN=new THREE.Vector3(0,-1,0);
@@ -332,7 +345,7 @@ async function setView(vw){view_=vw;apt=0;exitWalk();
   bar.innerHTML='';card.hidden=true;clearHots();
   status.hidden=false;status.innerHTML=vw==='walk'?'جاري تحميل العمارة من جوه…<small>ثواني قليلة</small>':'جاري تحميل النموذج…';
   try{const m=await load(MODEL[vw]);if(view_!==vw)return;
-    if(current)scene.remove(current);current=m;scene.add(m);status.hidden=true;
+    if(current)scene.remove(current);current=m;scene.add(m);status.hidden=true;setTimeout(introGo,Math.max(0,2600-(performance.now()-introT0)));
     if(vw==='walk'){enterWalk(m);return;}
     if(vw==='building'){goTo([13,12,12],-25,78,72,true);}
     else{addHots();showCard(null);goTo([13,0,10.5],-15,48,44,true);}
